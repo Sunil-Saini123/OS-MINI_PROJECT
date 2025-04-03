@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Scheduling Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Process Scheduling Simulator</h1>
+            <p>An interactive tool to visualize and understand SRTF CPU scheduling with I/O interrupts</p>
+        </header>
+
+        <!-- Input Section -->
+        <div class="input-section">
+            <div class="card">
+                <h2><i class="fas fa-tasks"></i> Add Process</h2>
+                <div class="form-group">
+                    <div>
+                        <label class="input-label" for="pid">Process ID</label>
+                        <input type="number" id="pid" placeholder="Process ID" min="1" required>
+                    </div>
+                    <div>
+                        <label class="input-label" for="at">Arrival Time</label>
+                        <input type="number" id="at" placeholder="Arrival Time" min="0" required>
+                    </div>
+                    <div>
+                        <label class="input-label" for="bt">Burst Time</label>
+                        <input type="number" id="bt" placeholder="Burst Time" min="1" required>
+                    </div>
+                    <button onclick="addProcess()" class="btn btn-add">
+                        <i class="fas fa-plus btn-icon"></i> Add Process
+                    </button>
+                </div>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-exchange-alt"></i> Add I/O Interrupt</h2>
+                <div class="form-group">
+                    <div>
+                        <label class="input-label" for="io-pid">Process ID</label>
+                        <input type="number" id="io-pid" placeholder="Process ID" min="1" required>
+                    </div>
+                    <div>
+                        <label class="input-label" for="io-wt">I/O Wait Time</label>
+                        <input type="number" id="io-wt" placeholder="I/O Wait Time" min="1" required>
+                    </div>
+                    <div>
+                        <label class="input-label" for="cpu-after-io">CPU Time After I/O</label>
+                        <input type="number" id="cpu-after-io" placeholder="CPU After I/O" min="1" required>
+                    </div>
+                    <button onclick="addIO()" class="btn btn-add">
+                        <i class="fas fa-plus btn-icon"></i> Add I/O
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Process List Section -->
+        <div id="process-list" class="process-list card">
+            <h3><i class="fas fa-list"></i> Added Processes</h3>
+            <p class="empty-message">No processes added yet. Start by adding a process above!</p>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="controls">
+            <button onclick="startSimulation()" class="btn btn-primary">
+                <i class="fas fa-play"></i> Run Simulation
+            </button>
+            <button onclick="loadDefaultExample()" class="btn btn-secondary">
+                <i class="fas fa-download"></i> Load Example
+            </button>
+            <button onclick="resetSimulation()" class="btn btn-danger">
+                <i class="fas fa-trash-alt"></i> Reset All
+            </button>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Simulating processes...</p>
+        </div>
+
+        <!-- Tabs Section -->
+        <div class="results-tabs">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="openTab(event, 'tabResults')">
+                    <i class="fas fa-table"></i> Results
+                </button>
+                <button class="tab-btn" onclick="openTab(event, 'tabExecution')">
+                    <i class="fas fa-code-branch"></i> Step-by-Step Execution
+                </button>
+                <button class="tab-btn" onclick="openTab(event, 'tabVisual')">
+                    <i class="fas fa-chart-line"></i> Visual Analysis
+                </button>
+            </div>
+
+            <!-- Results Tab -->
+            <div id="tabResults" class="tab-content card active">
+                <h2><i class="fas fa-table"></i> Simulation Results</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Arrival</th>
+                                <th>Burst</th>
+                                <th>Completion</th>
+                                <th>Turnaround</th>
+                                <th>Waiting</th>
+                            </tr>
+                        </thead>
+                        <tbody id="process-table"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Execution Tab -->
+            <div id="tabExecution" class="tab-content card">
+                <div id="execution-details" class="execution-details">
+                    <h3><i class="fas fa-code-branch"></i> Step-by-Step Execution</h3>
+                    <p>Run the simulation to see detailed execution steps.</p>
+                </div>
+            </div>
+
+            <!-- Visual Analysis Tab -->
+            <div id="tabVisual" class="tab-content card">
+                <h2><i class="fas fa-chart-line"></i> Visual Analysis</h2>
+                
+                <div class="chart-item">
+                    <h4>Execution Metrics</h4>
+                    <div class="chart-container">
+                        <canvas id="executionChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-item">
+                    <h4>Gantt Chart</h4>
+                    <div class="chart-container">
+                        <canvas id="ganttChart"></canvas>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item">
+                            <span class="color-box running"></span>
+                            <span>CPU Burst</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="color-box waiting"></span>
+                            <span>Waiting</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="color-box io"></span>
+                            <span>I/O Burst</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="index.js"></script>
+</body>
+</html>
