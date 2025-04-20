@@ -728,6 +728,13 @@ function updateGanttChart() {
       });
     });
   });
+
+   // Sort datasets by process number (extracted from the label)
+   datasets.sort((a, b) => {
+    const pidA = parseInt(a.label.match(/P(\d+)/)[1]);
+    const pidB = parseInt(b.label.match(/P(\d+)/)[1]);
+    return pidA - pidB;
+  });
   
   // Create Gantt chart
   ganttChartInstance = new Chart(ctx, {
