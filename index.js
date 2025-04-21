@@ -1,6 +1,5 @@
 // Define global variables
 let processes = [];
-let ioInterrupts = [];
 let chartInstance = null;
 let ganttChartInstance = null;
 
@@ -465,8 +464,8 @@ function runPBLE() {
     // Sort ready queue
     rq.sort((a, b) => {
       if (a.rt !== b.rt) return a.rt - b.rt;
-      if (a.at !== b.at) return a.at - b.at;
-      return a.pid - b.pid;
+      // if (a.at !== b.at) return a.at - b.at;
+      // return a.pid - b.pid;
     });
 
     // Check if we need to preempt current process
